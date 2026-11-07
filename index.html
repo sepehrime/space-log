@@ -17,37 +17,52 @@
     <header class="panel header">
       <div class="brand">
         <h1 class="title">SPACE-LOG</h1>
-        <p class="subtitle">Version control trainer · simulated git &amp; zsh · six missions from git init to git push · nothing leaves your browser</p>
-        <div class="stats">
-          <div class="stat"><span>BRANCH</span><b id="stat-branch">—</b></div>
-          <div class="stat"><span>COMMITS</span><b id="stat-commits">0</b></div>
-          <div class="stat"><span>STAGED</span><b id="stat-staged">0</b></div>
-          <div class="stat"><span>CHANGES</span><b id="stat-changes">0</b></div>
-          <div class="stat"><span>SYNC</span><b id="stat-sync">—</b></div>
-          <div class="stat"><span>MODE</span><b id="stat-mode" class="mode">SHELL</b></div>
-        </div>
+        <p class="subtitle">Version control trainer · simulated git &amp; zsh · nothing leaves your browser</p>
+        <p class="teaser">
+          <span class="teaser-tag">INCOMING TRANSMISSION</span>
+          Commander, you've just taken the helm of the starship <b>Space-Log</b>. Every reading, course change and
+          repair must be written into the ship's log, and Mission Control on Earth (GitHub) needs a copy. Git is the
+          ship's flight recorder<span class="teaser-dots">…</span>
+          <button class="read-more" id="btn-briefing" type="button">READ FULL BRIEFING ▸</button>
+        </p>
       </div>
-      <div class="actions">
-        <button class="btn btn-amber" id="btn-hint" title="Type the next command for me">[ HINT ]</button>
-        <button class="btn btn-green" id="btn-undo" title="Undo the last command">[ UNDO ]</button>
-        <button class="btn btn-red" id="btn-reset" title="Restart this mission">[ RESET ]</button>
+      <div class="stats" aria-label="Repository status">
+        <div class="stat"><span>BRANCH</span><b id="stat-branch">—</b></div>
+        <div class="stat"><span>COMMITS</span><b id="stat-commits">0</b></div>
+        <div class="stat"><span>STAGED</span><b id="stat-staged">0</b></div>
+        <div class="stat"><span>CHANGES</span><b id="stat-changes">0</b></div>
+        <div class="stat"><span>SYNC</span><b id="stat-sync">—</b></div>
+        <div class="stat"><span>MODE</span><b id="stat-mode" class="mode">SHELL</b></div>
       </div>
     </header>
 
-    <!-- ============ STATUS BAR ============ -->
-    <div class="statusbar" id="statusbar" data-tag="INFO">
-      <div class="status-live" role="status" aria-live="polite">
-        <span class="tag" id="status-tag">BOOT</span>
-        <span id="status-msg">Systems online.</span>
+    <!-- ============ MISSION CONTROL ============ -->
+    <nav class="panel mission-control" aria-label="Missions">
+      <div class="mc-track">
+        <button class="arrow-btn" id="btn-prev" type="button" aria-label="Previous mission" title="Previous mission">◀</button>
+        <ol class="track" id="track"></ol>
+        <button class="arrow-btn" id="btn-next" type="button" aria-label="Next mission" title="Next mission">▶</button>
       </div>
-      <div class="status-mission">
-        <div class="progress">
-          <div class="progress-text" id="progress-text">STEP 0 / 0</div>
-          <div class="progress-bar"><div id="progress-fill"></div></div>
+      <div class="mc-objective">
+        <div class="obj-meter" aria-label="Mission progress">
+          <span class="obj-count" id="progress-text">00 / 00</span>
+          <div class="segments" id="segments"></div>
         </div>
-        <button class="btn btn-cyan btn-md" id="btn-prev" title="Previous mission">◀ PREV</button>
-        <button class="btn btn-green btn-md" id="btn-next" title="Next mission">NEXT ▶</button>
+        <div class="obj-goal">
+          <span class="obj-label">OBJECTIVE</span>
+          <span class="obj-text" id="obj-goal">—</span>
+        </div>
+        <div class="obj-actions">
+          <button class="btn btn-amber btn-md" id="btn-hint" type="button" title="Type the next command into the console">? HINT</button>
+          <button class="btn btn-red btn-md" id="btn-reset" type="button" title="Restart this mission from its first step">⟲ RESTART</button>
+        </div>
       </div>
+    </nav>
+
+    <!-- ============ STATUS BAR ============ -->
+    <div class="statusbar" id="statusbar" data-tag="INFO" role="status" aria-live="polite">
+      <span class="tag" id="status-tag">BOOT</span>
+      <span class="status-msg" id="status-msg">Systems online.</span>
     </div>
 
     <div class="layout">
@@ -55,12 +70,10 @@
       <aside class="left console">
         <div class="panel console-head">
           <h2>GIT CONSOLE</h2>
-          <span class="version">v1.0</span>
-        </div>
-
-        <div class="mission-tabs">
-          <span class="tabs-label">Missions:</span>
-          <div id="tabs" class="tabs"></div>
+          <div class="console-tools">
+            <button class="btn btn-sm tool" id="btn-undo" type="button" title="Undo the last command">↶ UNDO</button>
+            <button class="btn btn-sm tool btn-red" id="btn-clr" type="button" title="Clear the screen (Ctrl+L)">⌫ CLR</button>
+          </div>
         </div>
 
         <div class="panel terminal" id="terminal">
@@ -68,13 +81,18 @@
           <form class="term-input" id="term-form" autocomplete="off">
             <label for="cmd" class="prompt" id="prompt"></label>
             <input id="cmd" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="type a command…">
+            <button class="run-btn" id="btn-run" type="submit" title="Run (Enter)">RUN ⏎</button>
           </form>
         </div>
 
-        <div class="console-actions">
-          <button class="btn btn-amber btn-md" id="btn-run">[ RUN ]</button>
-          <button class="btn btn-green btn-md" id="btn-status">[ STATUS ]</button>
-          <button class="btn btn-red btn-md" id="btn-clr">[ CLR ]</button>
+        <div class="quickbar" aria-label="Quick commands">
+          <span class="quick-label">QUICK</span>
+          <button class="quick" type="button" data-cmd="git status">status</button>
+          <button class="quick" type="button" data-cmd="git log --oneline --all">log</button>
+          <button class="quick" type="button" data-cmd="git branch -a">branches</button>
+          <button class="quick" type="button" data-cmd="git diff">diff</button>
+          <button class="quick" type="button" data-cmd="ls -a">ls</button>
+          <button class="quick" type="button" data-cmd="help">help</button>
         </div>
 
         <div class="panel reference">
@@ -135,11 +153,62 @@
           </div>
         </div>
 
-        <div class="panel mission" id="mission"></div>
+        <div class="panel mission" id="mission" aria-label="Mission log"></div>
 
       </section>
     </div>
   </main>
+
+  <!-- ============ BRIEFING MODAL ============ -->
+  <div class="modal" id="briefing" hidden>
+    <div class="panel modal-box briefing-box" role="dialog" aria-modal="true" aria-labelledby="briefing-title">
+      <div class="modal-head">
+        <span>◉ PRIORITY TRANSMISSION · STARDATE 2026.1</span>
+        <button class="modal-x" id="briefing-x" type="button" aria-label="Close briefing">✕</button>
+      </div>
+      <h2 class="briefing-title" id="briefing-title">MISSION BRIEFING</h2>
+
+      <div class="briefing-body">
+        <p>
+          Welcome aboard, Commander. You've just been given command of the starship <b>Space-Log</b>.
+          Out here a single mistake can cost the mission, so every reading, every course change and every
+          repair has to be recorded, and you need to be able to rewind to any earlier moment.
+        </p>
+        <p>
+          That's what <b>Git</b> is for. Think of it as the ship's flight recorder. It takes
+          <b>snapshots</b> (commits) of your files, lets you test risky ideas in <b>alternate timelines</b>
+          (branches) without touching the main course, and keeps a copy back at <b>Mission Control on
+          Earth</b> (GitHub) through push and pull.
+        </p>
+        <p>
+          Your orders: complete six missions, from powering up the recorder to sending your final log home.
+          Nothing here touches your real computer. It's a flight simulator, so experiment freely.
+        </p>
+
+        <h3>YOUR COCKPIT</h3>
+        <dl class="cockpit">
+          <dt>Mission Control bar</dt>
+          <dd>Your route. The diamonds are the six missions. <b>OBJECTIVE</b> shows your current order. Stuck? Press <b>? HINT</b> and the command is typed for you.</dd>
+          <dt>Git Console</dt>
+          <dd>Where you give orders. Type a command and press <b>Enter</b>. <b>↶ UNDO</b> rewinds your last order.</dd>
+          <dt>Commit Graph</dt>
+          <dd>The star chart of your history. Each dot is a snapshot, each lane is a timeline (branch). The glowing ring is <b>HEAD</b>: where you are right now.</dd>
+          <dt>The three zones</dt>
+          <dd>Your files' journey: <b>Working directory</b> (on your desk) → <b>Staging area</b> (packed for the next snapshot) → <b>Repository</b> (locked into history).</dd>
+          <dt>Mission Log</dt>
+          <dd>Below the zones: every step of the current mission, with an explanation of why it matters. Click a command to load it.</dd>
+        </dl>
+
+        <h3>FIRST ORDER</h3>
+        <p>Tell the flight recorder who's in command. Type this in the console:</p>
+        <code class="briefing-cmd">git config --global user.name "Your Name"</code>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-green btn-md" id="briefing-go" type="button">[ ACCEPT MISSION ]</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ============ EDITOR MODAL ============ -->
   <div class="modal" id="editor" hidden>

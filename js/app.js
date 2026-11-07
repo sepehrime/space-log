@@ -74,6 +74,7 @@
     $('statusbar').dataset.tag = tag;
     $('status-tag').textContent = tag;
     $('status-msg').textContent = msg;
+    $('status-msg').title = msg;
   }
 
   /* --------------------------------------------------------- execution */
@@ -126,12 +127,23 @@
       saveProgress();
       print('');
       print(`★ MISSION ${m.code} COMPLETE — ${m.title}`, 'title');
-      if (missionIdx < MISSIONS.length - 1) print('  Press NEXT ▶ for the next mission, or keep experimenting here.', 'dim');
-      setStatus('MISSION', `Mission ${m.code} complete! ${missionIdx < MISSIONS.length - 1 ? 'Press NEXT ▶ to continue.' : ''}`);
+      if (missionIdx < MISSIONS.length - 1) print('  Press ▶ (top right of Mission Control) for the next mission, or keep experimenting here.', 'dim');
+      setStatus('MISSION', `Mission ${m.code} complete! ${missionIdx < MISSIONS.length - 1 ? 'Press ▶ to launch the next one.' : ''}`);
     }
   }
 
+  // Missions unlock in order: the furthest you can go is the first mission not yet completed.
+  function unlockedUpTo() {
+    const first = MISSIONS.findIndex((m) => !progress.done.includes(m.code));
+    return first === -1 ? MISSIONS.length - 1 : first;
+  }
+
   function startMission(i) {
+    const limit = unlockedUpTo();
+    if (i > limit) {
+      setStatus('WARN', `Locked. Complete Mission ${MISSIONS[limit].code}: ${MISSIONS[limit].title} first.`);
+      return;
+    }
     missionIdx = Math.max(0, Math.min(MISSIONS.length - 1, i));
     stepIdx = 0;
     state = G.createState();
@@ -155,7 +167,7 @@
     print('');
     setStatus('MISSION', `Mission ${m.code}: ${m.title}`);
     render();
-    input.focus();
+    input.focus({ preventScroll: true });
   }
 
   /* ------------------------------------------------------------ render */
@@ -164,7 +176,7 @@
     renderStats();
     renderZones();
     renderMission();
-    renderTabs();
+    renderTrack();
     renderPrompt();
     window.GitGraph.render($('graph'), state);
   }
@@ -295,35 +307,81 @@
       if (stepIdx >= m.steps.length) {
         const done = document.createElement('div');
         done.className = 'complete-banner';
-        done.textContent = `★ MISSION COMPLETE${missionIdx < MISSIONS.length - 1 ? ' · PRESS NEXT ▶' : ''}`;
+        done.textContent = `★ MISSION COMPLETE${missionIdx < MISSIONS.length - 1 ? ' · PRESS ▶ TO CONTINUE' : ''}`;
         box.appendChild(done);
       }
     }
 
-    const total = m.steps.length;
-    $('progress-text').textContent = total ? `STEP ${Math.min(stepIdx, total)} / ${total}` : 'FREE PLAY';
-    $('progress-fill').style.width = total ? `${(stepIdx / total) * 100}%` : '100%';
-    $('btn-prev').disabled = missionIdx === 0;
-    $('btn-next').disabled = missionIdx === MISSIONS.length - 1;
   }
 
-  function renderTabs() {
-    const tabs = $('tabs');
-    if (!tabs.children.length) {
+  // Mission Control: the launch-sequence track, the step meter and the objective line.
+  function renderTrack() {
+    const track = $('track');
+    if (!track.children.length) {
       MISSIONS.forEach((m, i) => {
+        const li = document.createElement('li');
         const b = document.createElement('button');
         b.type = 'button';
-        b.className = 'btn btn-green btn-sm tab';
-        b.textContent = m.tab;
+        b.className = 'track-node';
         b.title = `Mission ${m.code}: ${m.title}`;
+        const dot = document.createElement('span');
+        dot.className = 'tn-dot';
+        const name = document.createElement('span');
+        name.className = 'tn-name';
+        name.textContent = m.tab;
+        b.append(dot, name);
         b.addEventListener('click', () => startMission(i));
-        tabs.appendChild(b);
+        li.appendChild(b);
+        track.appendChild(li);
       });
     }
-    [...tabs.children].forEach((b, i) => {
-      b.classList.toggle('active', i === missionIdx);
-      b.classList.toggle('done', progress.done.includes(MISSIONS[i].code));
+    const limit = unlockedUpTo();
+    [...track.children].forEach((li, i) => {
+      // Only count a mission as done if everything before it is done too, so the wire is one continuous run.
+      const done = i < limit;
+      const locked = i > limit;
+      li.className = [i === missionIdx && 'active', done && 'done', locked && 'locked'].filter(Boolean).join(' ');
+      const btn = li.firstChild;
+      btn.disabled = locked;
+      btn.setAttribute('aria-current', i === missionIdx ? 'step' : 'false');
+      btn.title = locked
+        ? `Locked: complete Mission ${MISSIONS[limit].code} first`
+        : `Mission ${MISSIONS[i].code}: ${MISSIONS[i].title}`;
+      li.querySelector('.tn-dot').textContent = locked ? '🔒' : done && i !== missionIdx ? '✓' : MISSIONS[i].code;
     });
+
+    // On narrow screens the track scrolls sideways: keep the active mission centred.
+    const active = track.children[missionIdx];
+    track.scrollLeft = active.offsetLeft - (track.clientWidth - active.offsetWidth) / 2;
+
+    const m = MISSIONS[missionIdx];
+    const total = m.steps.length;
+    const complete = total > 0 && stepIdx >= total;
+    const pad = (n) => String(n).padStart(2, '0');
+
+    $('progress-text').textContent = total ? `${pad(Math.min(stepIdx, total))} / ${pad(total)}` : 'FREE ∞';
+    const seg = $('segments');
+    seg.innerHTML = '';
+    for (let i = 0; i < Math.max(total, 1); i++) {
+      const s = document.createElement('i');
+      s.className = !total ? 'free' : i < stepIdx ? 'on' : i === stepIdx ? 'now' : '';
+      seg.appendChild(s);
+    }
+
+    const goal = $('obj-goal');
+    goal.textContent = !total ? 'Free play: anything goes. Try branching and merging on your own.'
+      : complete ? `★ Mission ${m.code} complete${missionIdx < MISSIONS.length - 1 ? ', press ▶ to launch the next one' : ''}`
+      : m.steps[stepIdx].goal;
+    goal.title = !total || complete ? '' : m.steps[stepIdx].why;
+    goal.classList.toggle('complete', complete);
+    $('btn-hint').disabled = !total || complete;
+
+    $('btn-prev').disabled = missionIdx === 0;
+    $('btn-next').disabled = missionIdx >= limit;
+    $('btn-next').title = missionIdx >= limit && missionIdx < MISSIONS.length - 1
+      ? 'Finish this mission to unlock the next one'
+      : 'Next mission';
+    $('btn-next').classList.toggle('ready', complete && missionIdx < MISSIONS.length - 1);
   }
 
   /* ------------------------------------------------------------ editor */
@@ -402,18 +460,24 @@
 
   $('terminal').addEventListener('click', () => { if (!window.getSelection().toString()) input.focus(); });
 
-  $('btn-run').addEventListener('click', () => { const v = input.value; input.value = ''; execute(v); input.focus(); });
-  $('btn-status').addEventListener('click', () => { execute('git status'); input.focus(); });
+  // RUN is the form's submit button, so Enter and clicking share the submit handler above.
+  document.querySelectorAll('.quick').forEach((b) => {
+    b.addEventListener('click', () => { execute(b.dataset.cmd); input.focus(); });
+  });
   $('btn-clr').addEventListener('click', () => { out.innerHTML = ''; input.focus(); });
 
   $('btn-hint').addEventListener('click', () => {
     const step = MISSIONS[missionIdx].steps[stepIdx];
     if (!step) {
-      setStatus('INFO', MISSIONS[missionIdx].steps.length ? 'Mission done. Press NEXT ▶.' : 'Sandbox: anything goes. Try git log --oneline --all.');
+      setStatus('INFO', MISSIONS[missionIdx].steps.length ? 'Mission done. Press ▶ for the next one.' : 'Sandbox: anything goes. Try git log --oneline --all.');
       return;
     }
     input.value = step.cmd;
     input.focus();
+    const form = $('term-form');
+    form.classList.remove('flash');
+    void form.offsetWidth; // restart the animation
+    form.classList.add('flash');
     setStatus('MISSION', `Hint: ${step.why}`);
   });
 
@@ -437,5 +501,29 @@
     resizeTimer = setTimeout(() => window.GitGraph.render($('graph'), state), 120);
   });
 
-  startMission(progress.mission || 0);
+  /* ---------------------------------------------------------- briefing */
+
+  const briefing = $('briefing');
+
+  function openBriefing() {
+    briefing.hidden = false;
+    $('briefing-go').focus();
+  }
+
+  function closeBriefing() {
+    briefing.hidden = true;
+    if (!progress.seenBriefing) { progress.seenBriefing = true; saveProgress(); }
+    input.focus({ preventScroll: true });
+  }
+
+  $('btn-briefing').addEventListener('click', openBriefing);
+  $('briefing-x').addEventListener('click', closeBriefing);
+  $('briefing-go').addEventListener('click', closeBriefing);
+  briefing.addEventListener('click', (e) => { if (e.target === briefing) closeBriefing(); });
+  briefing.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeBriefing(); });
+
+  // A saved position past the unlocked range (e.g. from before missions were locked) falls back to the frontier.
+  startMission(Math.min(progress.mission || 0, unlockedUpTo()));
+  // First-time visitors get the story before anything else.
+  if (!progress.seenBriefing) openBriefing();
 })();
