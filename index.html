@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Space Log</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="crt" aria-hidden="true"></div>
+
+  <main class="app">
+    <!-- ============ HEADER ============ -->
+    <header class="panel header">
+      <div class="brand">
+        <h1 class="title">SPACE-LOG</h1>
+        <p class="subtitle">Version control trainer · simulated git &amp; zsh · six missions from git init to git push · nothing leaves your browser</p>
+        <div class="stats">
+          <div class="stat"><span>BRANCH</span><b id="stat-branch">—</b></div>
+          <div class="stat"><span>COMMITS</span><b id="stat-commits">0</b></div>
+          <div class="stat"><span>STAGED</span><b id="stat-staged">0</b></div>
+          <div class="stat"><span>CHANGES</span><b id="stat-changes">0</b></div>
+          <div class="stat"><span>SYNC</span><b id="stat-sync">—</b></div>
+          <div class="stat"><span>MODE</span><b id="stat-mode" class="mode">SHELL</b></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-amber" id="btn-hint" title="Type the next command for me">[ HINT ]</button>
+        <button class="btn btn-green" id="btn-undo" title="Undo the last command">[ UNDO ]</button>
+        <button class="btn btn-red" id="btn-reset" title="Restart this mission">[ RESET ]</button>
+      </div>
+    </header>
+
+    <!-- ============ STATUS BAR ============ -->
+    <div class="statusbar" id="statusbar" data-tag="INFO" role="status" aria-live="polite">
+      <span class="tag" id="status-tag">BOOT</span>
+      <span id="status-msg">Systems online.</span>
+    </div>
+
+    <div class="layout">
+      <!-- ============ LEFT: visualisation ============ -->
+      <section class="left">
+        <div class="panel graph-panel">
+          <div class="panel-label">
+            <span>COMMIT GRAPH</span>
+            <span class="legend">
+              <i class="lg-head"></i>HEAD
+              <i class="lg-branch"></i>branch
+              <i class="lg-remote"></i>origin/*
+              <i class="lg-cloud"></i>only on GitHub
+            </span>
+          </div>
+          <div class="graph" id="graph"></div>
+        </div>
+
+        <div class="panel zones">
+          <div class="zone">
+            <div class="zone-head">WORKING DIRECTORY</div>
+            <div class="zone-sub">your files on disk</div>
+            <div class="chips" id="zone-work"></div>
+          </div>
+          <div class="zone-arrow"><span>git add</span><b>▶</b></div>
+          <div class="zone">
+            <div class="zone-head">STAGING AREA</div>
+            <div class="zone-sub">draft of the next commit</div>
+            <div class="chips" id="zone-stage"></div>
+          </div>
+          <div class="zone-arrow"><span>git commit</span><b>▶</b></div>
+          <div class="zone">
+            <div class="zone-head">REPOSITORY</div>
+            <div class="zone-sub" id="zone-repo-sub">last commit (HEAD)</div>
+            <div class="chips" id="zone-repo"></div>
+          </div>
+        </div>
+
+        <div class="panel mission" id="mission"></div>
+
+        <div class="panel navbar">
+          <span class="nav-label">MISSION</span>
+          <button class="btn btn-cyan btn-md" id="btn-prev">◀ PREV</button>
+          <button class="btn btn-green btn-md" id="btn-next">NEXT ▶</button>
+          <div class="progress">
+            <div class="progress-text" id="progress-text">STEP 0 / 0</div>
+            <div class="progress-bar"><div id="progress-fill"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ RIGHT: console ============ -->
+      <aside class="right">
+        <div class="panel console-head">
+          <h2>GIT CONSOLE</h2>
+          <span class="version">v1.0</span>
+        </div>
+
+        <div class="mission-tabs">
+          <span class="tabs-label">Missions:</span>
+          <div id="tabs" class="tabs"></div>
+        </div>
+
+        <div class="panel terminal" id="terminal">
+          <div class="term-out" id="term-out" aria-live="polite"></div>
+          <form class="term-input" id="term-form" autocomplete="off">
+            <label for="cmd" class="prompt" id="prompt"></label>
+            <input id="cmd" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="type a command…">
+          </form>
+        </div>
+
+        <div class="console-actions">
+          <button class="btn btn-amber btn-md" id="btn-run">[ RUN ]</button>
+          <button class="btn btn-green btn-md" id="btn-status">[ STATUS ]</button>
+          <button class="btn btn-red btn-md" id="btn-clr">[ CLR ]</button>
+        </div>
+
+        <div class="panel reference">
+          <h3>COMMAND REFERENCE</h3>
+          <dl>
+            <dt>git status</dt><dd>what changed, what's staged</dd>
+            <dt>git add &lt;file&gt; / .</dt><dd>stage one file / everything</dd>
+            <dt>git commit -m "msg"</dt><dd>save a snapshot</dd>
+            <dt>git diff [--staged]</dt><dd>show line changes</dd>
+            <dt>git restore [--staged] f</dt><dd>discard / unstage</dd>
+            <dt>git branch [name]</dt><dd>list / create branches</dd>
+            <dt>git checkout -b name</dt><dd>create + switch branch</dd>
+            <dt>git merge name</dt><dd>bring a branch into this one</dd>
+            <dt>git log --oneline --all</dt><dd>compact history</dd>
+            <dt>git remote add origin url</dt><dd>link to GitHub</dd>
+            <dt>git push -u origin b</dt><dd>upload a branch</dd>
+            <dt>git pull origin b</dt><dd>download + merge</dd>
+            <dt>github merge b</dt><dd>simulate merging a PR</dd>
+            <dt>echo "x" &gt; f / &gt;&gt; f</dt><dd>write / append a line</dd>
+            <dt>code f</dt><dd>open the editor</dd>
+            <dt>↑ / ↓</dt><dd>command history</dd>
+          </dl>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- ============ EDITOR MODAL ============ -->
+  <div class="modal" id="editor" hidden>
+    <div class="panel modal-box" role="dialog" aria-modal="true" aria-labelledby="editor-title">
+      <div class="modal-head">
+        <span id="editor-title">EDITOR</span>
+        <span class="dim">⌘S / Ctrl+S to save · Esc to cancel</span>
+      </div>
+      <div class="editor-hint" id="editor-hint" hidden>
+        Conflict! Keep the line(s) you want and delete every <b>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</b>, <b>=======</b> and <b>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</b> line.
+      </div>
+      <textarea id="editor-text" spellcheck="false"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-green btn-md" id="editor-save">[ SAVE ]</button>
+        <button class="btn btn-red btn-md" id="editor-cancel">[ CANCEL ]</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/merge.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/lessons.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
