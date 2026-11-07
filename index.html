@@ -35,62 +35,24 @@
     </header>
 
     <!-- ============ STATUS BAR ============ -->
-    <div class="statusbar" id="statusbar" data-tag="INFO" role="status" aria-live="polite">
-      <span class="tag" id="status-tag">BOOT</span>
-      <span id="status-msg">Systems online.</span>
+    <div class="statusbar" id="statusbar" data-tag="INFO">
+      <div class="status-live" role="status" aria-live="polite">
+        <span class="tag" id="status-tag">BOOT</span>
+        <span id="status-msg">Systems online.</span>
+      </div>
+      <div class="status-mission">
+        <div class="progress">
+          <div class="progress-text" id="progress-text">STEP 0 / 0</div>
+          <div class="progress-bar"><div id="progress-fill"></div></div>
+        </div>
+        <button class="btn btn-cyan btn-md" id="btn-prev" title="Previous mission">◀ PREV</button>
+        <button class="btn btn-green btn-md" id="btn-next" title="Next mission">NEXT ▶</button>
+      </div>
     </div>
 
     <div class="layout">
-      <!-- ============ LEFT: visualisation ============ -->
-      <section class="left">
-        <div class="panel graph-panel">
-          <div class="panel-label">
-            <span>COMMIT GRAPH</span>
-            <span class="legend">
-              <i class="lg-head"></i>HEAD
-              <i class="lg-branch"></i>branch
-              <i class="lg-remote"></i>origin/*
-              <i class="lg-cloud"></i>only on GitHub
-            </span>
-          </div>
-          <div class="graph" id="graph"></div>
-        </div>
-
-        <div class="panel zones">
-          <div class="zone">
-            <div class="zone-head">WORKING DIRECTORY</div>
-            <div class="zone-sub">your files on disk</div>
-            <div class="chips" id="zone-work"></div>
-          </div>
-          <div class="zone-arrow"><span>git add</span><b>▶</b></div>
-          <div class="zone">
-            <div class="zone-head">STAGING AREA</div>
-            <div class="zone-sub">draft of the next commit</div>
-            <div class="chips" id="zone-stage"></div>
-          </div>
-          <div class="zone-arrow"><span>git commit</span><b>▶</b></div>
-          <div class="zone">
-            <div class="zone-head">REPOSITORY</div>
-            <div class="zone-sub" id="zone-repo-sub">last commit (HEAD)</div>
-            <div class="chips" id="zone-repo"></div>
-          </div>
-        </div>
-
-        <div class="panel mission" id="mission"></div>
-
-        <div class="panel navbar">
-          <span class="nav-label">MISSION</span>
-          <button class="btn btn-cyan btn-md" id="btn-prev">◀ PREV</button>
-          <button class="btn btn-green btn-md" id="btn-next">NEXT ▶</button>
-          <div class="progress">
-            <div class="progress-text" id="progress-text">STEP 0 / 0</div>
-            <div class="progress-bar"><div id="progress-fill"></div></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============ RIGHT: console ============ -->
-      <aside class="right">
+      <!-- ============ LEFT: console ============ -->
+      <aside class="left console">
         <div class="panel console-head">
           <h2>GIT CONSOLE</h2>
           <span class="version">v1.0</span>
@@ -137,6 +99,45 @@
           </dl>
         </div>
       </aside>
+
+      <!-- ============ RIGHT: visualisation ============ -->
+      <section class="right viz">
+        <div class="panel graph-panel">
+          <div class="panel-label">
+            <span>COMMIT GRAPH</span>
+            <span class="legend">
+              <i class="lg-head"></i>HEAD
+              <i class="lg-branch"></i>branch
+              <i class="lg-remote"></i>origin/*
+              <i class="lg-cloud"></i>only on GitHub
+            </span>
+          </div>
+          <div class="graph" id="graph"></div>
+        </div>
+
+        <div class="panel zones">
+          <div class="zone">
+            <div class="zone-head">WORKING DIRECTORY</div>
+            <div class="zone-sub">your files on disk</div>
+            <div class="chips" id="zone-work"></div>
+          </div>
+          <div class="zone-arrow"><span>git add</span><b>▶</b></div>
+          <div class="zone">
+            <div class="zone-head">STAGING AREA</div>
+            <div class="zone-sub">draft of the next commit</div>
+            <div class="chips" id="zone-stage"></div>
+          </div>
+          <div class="zone-arrow"><span>git commit</span><b>▶</b></div>
+          <div class="zone">
+            <div class="zone-head">REPOSITORY</div>
+            <div class="zone-sub" id="zone-repo-sub">last commit (HEAD)</div>
+            <div class="chips" id="zone-repo"></div>
+          </div>
+        </div>
+
+        <div class="panel mission" id="mission"></div>
+
+      </section>
     </div>
   </main>
 

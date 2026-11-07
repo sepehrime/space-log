@@ -181,11 +181,19 @@ code, kbd { font-family: var(--font); }
   flex-shrink: 0;
 }
 #status-msg { letter-spacing: 0.04em; line-height: 1.5; }
+.statusbar { flex-wrap: wrap; justify-content: space-between; }
+.status-live { display: flex; align-items: center; gap: 16px; flex: 1 1 420px; min-width: 0; }
+.status-mission { display: flex; align-items: center; gap: 12px; flex: 0 1 auto; }
+.status-mission .progress { width: 220px; flex: 0 1 220px; }
+@media (max-width: 700px) {
+  .status-mission { width: 100%; flex-wrap: wrap; }
+  .status-mission .progress { flex: 1 1 100%; width: auto; }
+}
 
 /* ============ Layout ============ */
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(380px, 1fr);
+  grid-template-columns: minmax(380px, 1fr) minmax(0, 1.55fr);
   gap: 14px;
   align-items: start;
 }
@@ -373,9 +381,6 @@ button.chip:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px
   letter-spacing: 0.08em;
 }
 
-/* ============ Mission nav bar ============ */
-.navbar { display: flex; align-items: center; gap: 12px; padding: 12px 18px; flex-wrap: wrap; }
-.nav-label { font-size: 11px; letter-spacing: 0.22em; color: var(--muted); }
 .progress { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 6px; }
 .progress-text { font-size: 11px; letter-spacing: 0.2em; color: var(--muted); text-align: right; }
 .progress-bar { height: 6px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.5); }
