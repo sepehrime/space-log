@@ -298,7 +298,7 @@
           cmd.className = 'cmd';
           cmd.textContent = step.cmd;
           cmd.title = 'Click to type this into the console';
-          cmd.addEventListener('click', () => { input.value = step.cmd; input.focus(); });
+          cmd.addEventListener('click', () => { setInput(step.cmd); input.focus(); });
           li.append(why, cmd);
         }
         ol.appendChild(li);
@@ -435,23 +435,42 @@
 
   /* ---------------------------------------------------------- controls */
 
+  // The command box is a textarea so long commands wrap; grow it to fit its text.
+  function autosize() {
+    input.style.height = 'auto';
+    input.style.height = `${input.scrollHeight}px`;
+  }
+  function setInput(v) {
+    input.value = v;
+    autosize();
+    input.setSelectionRange(v.length, v.length);
+  }
+  // Commands are one line: pasted newlines become spaces.
+  input.addEventListener('input', () => {
+    if (/\n/.test(input.value)) setInput(input.value.replace(/\s*\n\s*/g, ' '));
+    else autosize();
+  });
+
   $('term-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = input.value;
-    input.value = '';
+    setInput('');
     execute(v);
   });
 
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowUp') {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+      e.preventDefault(); // a textarea would insert a newline; run the command instead
+      $('term-form').requestSubmit();
+    } else if (e.key === 'ArrowUp') {
       if (!history.length) return;
       e.preventDefault();
       historyPos = Math.max(0, historyPos - 1);
-      input.value = history[historyPos];
+      setInput(history[historyPos]);
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       historyPos = Math.min(history.length, historyPos + 1);
-      input.value = history[historyPos] || '';
+      setInput(history[historyPos] || '');
     } else if (e.key === 'l' && e.ctrlKey) {
       e.preventDefault();
       out.innerHTML = '';
@@ -472,7 +491,7 @@
       setStatus('INFO', MISSIONS[missionIdx].steps.length ? 'Mission done. Press ▶ for the next one.' : 'Sandbox: anything goes. Try git log --oneline --all.');
       return;
     }
-    input.value = step.cmd;
+    setInput(step.cmd);
     input.focus();
     const form = $('term-form');
     form.classList.remove('flash');

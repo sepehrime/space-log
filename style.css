@@ -581,16 +581,23 @@ button.chip:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px
 .line { white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.55em; }
 .term-input {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   padding: 10px 16px;
   border-top: 1px solid var(--line);
   font-size: 13px;
 }
-.prompt { white-space: nowrap; flex-shrink: 0; }
+.prompt { white-space: nowrap; flex-shrink: 0; line-height: 1.55; padding-top: 3px; }
 #cmd {
   flex: 1;
   min-width: 0;
+  /* textarea that wraps long commands and grows with them (see autosize in app.js) */
+  resize: none;
+  overflow: hidden;
+  padding: 3px 0 0;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   background: transparent;
   border: 0;
   outline: 0;
@@ -616,6 +623,7 @@ button.chip:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px
 
 .run-btn {
   flex-shrink: 0;
+  align-self: flex-end;
   font-family: var(--display);
   font-size: 20px;
   letter-spacing: 0.08em;
